@@ -1,4 +1,4 @@
-// representação do meu bando de dados
+// representação do bando de dados
 let database = [
   {
     id: 1,
@@ -22,8 +22,10 @@ localStorage.setItem("database", dbLocalStorage);
 const forms = document.querySelectorAll("form");
 const formCriacao = document.querySelector("#creationForm");
 const formEdicao = document.querySelector("#editionForm");
+const formExclusao = document.querySelector("#exclusionForm");
 const tableBody = document.querySelector("#table tbody");
 const editionSelect = document.querySelector("#editionForm select");
+const deletionSelect = document.querySelector("#modalDeExclusao select");
 
 // Funções
 
@@ -47,7 +49,6 @@ function loadUsers() {
     <td>${usuario.profissao}</td>
   </tr>`;
   });
-  console.log(localStorage.getItem("database"));
 }
 
 function deleteUser(id) {
@@ -75,18 +76,6 @@ function updateUser(id, usuarioEditado) {
   loadCurrentSelectUsers();
 }
 
-updateUser(2, { profissao: "Desenvolvedor Python Back-end" });
-createUser({
-  id: database.length + 1,
-  nome: "percival",
-  idade: 42,
-  profissao: "Repórter",
-});
-loadUsers();
-loadCurrentSelectUsers();
-
-// Carregar elementos
-
 function loadCurrentSelectUsers() {
   let database = localStorage.getItem("database");
   let jsonDB = JSON.parse(database);
@@ -98,6 +87,23 @@ function loadCurrentSelectUsers() {
   });
 }
 
+function loadCurrentDeletionOptions() {
+  let database = localStorage.getItem("database");
+  let jsonDB = JSON.parse(database);
+  deletionSelect.innerHTML = null;
+  jsonDB.forEach((usuario) => {
+    deletionSelect.innerHTML += `
+      <option value="${usuario.id}">${usuario.nome}</option>
+    `;
+  });
+}
+
+loadUsers();
+loadCurrentSelectUsers();
+loadCurrentDeletionOptions();
+
+// eventos
+
 editionSelect.addEventListener("input", (e) => {
   let id = e.target.value;
   let database = localStorage.getItem("database");
@@ -105,7 +111,6 @@ editionSelect.addEventListener("input", (e) => {
 
   usuarioAtual = jsonDB.find((user) => user.id == id);
   let divRes = formEdicao.querySelector("#usuarioSelecionado");
-  console.log(usuarioAtual);
   divRes.innerHTML = `
   <div class="form-group">
   <label for="nome">Nome de usuário</label>
@@ -145,7 +150,6 @@ editionSelect.addEventListener("input", (e) => {
     let nome = divRes.querySelector("input#nome").value;
     let idade = Number(divRes.querySelector("input#idade").value);
     let profissao = divRes.querySelector("input#profissao").value;
-    console.log(nome);
 
     updateUser(usuarioAtual.id, {
       nome: nome,
@@ -158,7 +162,16 @@ editionSelect.addEventListener("input", (e) => {
   });
 });
 
-// eventos
+formExclusao.addEventListener("submit", (e) => {
+  const idUsuarioSelecionado = +formExclusao.querySelector("select").value;
+
+  deleteUser(idUsuarioSelecionado);
+  loadUsers();
+  loadCurrentDeletionOptions();
+  loadCurrentSelectUsers();
+  $("#modalDeExclusao").modal("toggle");
+});
+
 forms.forEach((form) => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -166,7 +179,6 @@ forms.forEach((form) => {
 });
 
 formCriacao.addEventListener("submit", (e) => {
-  console.log(e);
   let nome = formCriacao.querySelector("#nome").value;
   let idade = Number(formCriacao.querySelector("#idade").value);
   let profissao = formCriacao.querySelector("#profissao").value;
@@ -182,4 +194,5 @@ formCriacao.addEventListener("submit", (e) => {
   $("#modalDeCadastro").modal("toggle");
   loadUsers();
   loadCurrentSelectUsers();
+  loadCurrentDeletionOptions();
 });
